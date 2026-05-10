@@ -12,9 +12,6 @@ Correct registration flow (verified 2026-05-10):
         Ed25519 public key in base64 (NOT PEM format).
   3. Save agent_id to ~/.config/botcha-ai/config.yml.
 
-Note: app_secret is NOT used as a Bearer token. The Bearer for registration is the
-JWT from the challenge solve. app_secret is preserved in config.yml as a reference
-but is not consulted by this script.
 
 Output JSON fields:
   success     bool
@@ -103,7 +100,6 @@ cfg_data.setdefault("apps", {})
 
 app_cfg    = cfg_data["apps"].get(args.app_id, {})
 agent_id   = app_cfg.get("agent_id")
-app_secret = app_cfg.get("app_secret", "")
 registered = False
 
 if not agent_id:
@@ -204,7 +200,6 @@ if not agent_id:
 
     cfg_data["apps"][args.app_id] = {
         "agent_id":      agent_id,
-        "app_secret":    app_secret,
         "refresh_token": "",
     }
     CFG_FILE.write_text(yaml.dump(cfg_data, default_flow_style=False))
