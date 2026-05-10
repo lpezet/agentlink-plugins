@@ -74,28 +74,60 @@ To reload after edits, reinstall the skill:
 
 ## Testing with Hermes Agent
 
-Point Hermes at the local checkout instead of the GitHub remote:
+The best (isolated) way to go about it is to use the Hermes Agent Docker image. The base image
+lacks `python3-yaml`, so build a local wrapper image first:
 
 ```bash
-hermes skills tap add /path/to/agentlink-skills
-hermes skills install local/<skill-name>
-/reset
+./tests/hermes/build.sh
 ```
 
-After editing a skill, reinstall to pick up changes:
+This creates a local `agentlink-hermes` image with the required dependencies. All docker commands
+below use this image. Scripts in `tests/hermes/` wrap these commands for convenience.
+
+Create a folder to hold Hermes setup and set up Hermes Agent:
 
 ```bash
-hermes skills install local/<skill-name>
-/reset
+mkdir -p ~/.hermes-agentlink-skills
+./tests/hermes/run.sh setup
 ```
 
-To switch back to the published version:
+Pick your poison (model) and pass some key (e.g. Anthropic API key), skip channel configuration (Telegram, etc., unless you really want it) and don't launch hermes chat (to simply exit at this point).
+
+Add the `skills` folder as External Skill Directory in Hermes' `config.yaml`:
 
 ```bash
-hermes skills tap remove local
-hermes skills tap add lpezet/agentlink-skills
-hermes skills install lpezet/agentlink-skills/<skill-name>
-/reset
+./tests/hermes/run.sh configure
+```
+
+You can check Hermes did it right with:
+
+```bash
+sudo cat ~/.hermes-agentlink-skills/config.yaml | grep "^skills:" -A 3
+```
+
+You should see something like this:
+
+```bash
+skills:
+  external_dirs:
+  - /opt/agentlink-skills/
+  template_vars: true
+```
+
+To chat with Hermes (and your persistent and isolated setup):
+
+```bash
+./tests/hermes/run.sh
+```
+
+You can check there that the skills are properly loaded by typing just "/bot" and see options given by Hermes:
+
+```
+──────────────────────────────────────────────────────────────────────────────────
+❯ /bot
+──────────────────────────────────────────────────────────────────────────────────
+ /botcha-ai-reputation  ⚡ Manage a Botcha.ai agent's reputation score. Suppo...
+ /botcha-ai             ⚡ Obtains a Botcha.ai JWT access token for an AI age...
 ```
 
 ## Adding a skill to the README

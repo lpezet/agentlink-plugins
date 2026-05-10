@@ -176,6 +176,7 @@ if not agent_id:
 
     tap_payload = json.dumps({
         "agent_id":            agent_id,
+        "agent_name":          agent_data["agent_name"],
         "public_key":          raw_pubkey_b64,
         "signature_algorithm": "ed25519",
         "capabilities":        [{"action": "browse"}, {"action": "search"}],
