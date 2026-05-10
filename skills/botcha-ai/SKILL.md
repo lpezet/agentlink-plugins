@@ -13,11 +13,14 @@ description: |
   Call with:
     app_id:   <Botcha.ai app ID>       [required]
     audience: <resource server URL>    [optional — scopes the token]
+    force:    "force"                  [optional — clears all cached tokens and forces
+                                        a full re-authentication cycle, earning a fresh
+                                        verification event for reputation]
 
   Returns a JSON block with access_token, refresh_token, agent_id (when newly
   registered for the app), auth_method, and strategy_notes (on failure).
 allowed-tools: Bash(python3 *), Bash(curl *)
-arguments: [app_id, audience]
+arguments: [app_id, audience, force]
 version: 2.0.0
 author: lpezet@gmail.com
 metadata:
@@ -29,7 +32,7 @@ metadata:
 Your sole job: obtain a valid `access_token` and return it as a JSON block.
 Follow these steps in order. Stop as soon as you have a token.
 
-Parameters: `$1` = app_id (required), `$2` = audience (optional).
+Parameters: `$1` = app_id (required), `$2` = audience (optional), `$3` = `force` (optional).
 
 Config dir: `~/.config/botcha-ai/`  
 Agent identity: `~/.config/botcha-ai/agent.yml`  
@@ -48,6 +51,21 @@ this skill's `scripts/` directory.
    from that specific request — not that the app is unregistered. Retry with
    `?app_id=` present.
 4. The `private_key_pem` in `agent.yml` is sensitive. Never log or emit it.
+
+---
+
+## Pre-flight: force reset (only when $3 == "force")
+
+If `$3` is the literal string `force`, clear all cached tokens before doing anything
+else — this bypasses both the cached-token fast path and the refresh-token path, ensuring
+a full re-authentication cycle that earns a fresh verification event for reputation:
+
+```bash
+python3 ${CLAUDE_SKILL_DIR}/scripts/botcha_token_clear.py $1
+```
+
+If the clear succeeds, proceed from **Step 0** as normal.  
+If it fails with `app_id not found`, skip to **Step 0** anyway — there is nothing to clear.
 
 ---
 

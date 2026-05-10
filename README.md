@@ -62,10 +62,57 @@ challenge-solving fallback for unauthenticated contexts.
 
 **Inputs:**
 
-| Parameter  | Required | Description                                    |
-| ---------- | -------- | ---------------------------------------------- |
-| `app_id`   | yes      | Your Botcha.ai application ID                  |
-| `audience` | no       | Resource server URL — scopes the token         |
+| Parameter  | Required | Description                                                                      |
+| ---------- | -------- | -------------------------------------------------------------------------------- |
+| `app_id`   | yes      | Your Botcha.ai application ID                                                    |
+| `audience` | no       | Resource server URL — scopes the token                                           |
+| `force`    | no       | Pass `"force"` to clear all cached tokens and force a full re-authentication cycle, earning a fresh verification event for reputation |
 
 **Output:** JSON block with `access_token`, `refresh_token`, `auth_method`,
 `agent_id` (on first registration), and `strategy_notes`.
+
+---
+
+### [botcha-ai-challenge](skills/botcha-ai-challenge/SKILL.md)
+
+**Category:** auth | **Tags:** auth, botcha.ai, reputation, challenge | **Version:** 1.0.0
+
+Intentionally solve a fresh Botcha.ai challenge to earn reputation. Unlike `botcha-ai`
+(which solves challenges only as a fallback), this skill always clears the cached token
+and requests a new challenge, ensuring the verified event is credited to the registered
+agent's reputation score. Speed and compute challenges are solved automatically. Reasoning
+and hybrid challenges are out of scope — use `botcha-ai` for those.
+
+**Inputs:**
+
+| Parameter  | Required | Description                            |
+| ---------- | -------- | -------------------------------------- |
+| `app_id`   | yes      | Your Botcha.ai application ID          |
+| `audience` | no       | Resource server URL — scopes the token |
+
+**Output:** JSON block with `access_token`, `challenge_type`, `time_to_solve_ms`, and `strategy_notes`.
+
+---
+
+### [botcha-ai-reputation](skills/botcha-ai-reputation/SKILL.md)
+
+**Category:** auth | **Tags:** auth, botcha.ai, reputation, trust | **Version:** 1.0.0
+
+Read a [Botcha.ai](https://botcha.ai) agent's reputation score and event history.
+Reputation reflects verified behaviour — it cannot be self-reported. The primary way
+to build score today is through the `botcha-ai` and `botcha-ai-challenge` skills
+(each successful verification contributes a `verification/challenge_solved` event).
+The Botcha.ai whitepaper describes a planned reputation marketplace where agents will
+earn reputation across partner networks.
+
+**Inputs:**
+
+| Parameter   | Required | Description                                                              |
+| ----------- | -------- | ------------------------------------------------------------------------ |
+| `app_id`    | yes      | Your Botcha.ai application ID                                            |
+| `operation` | yes      | `get` — current score and tier · `list` — event history                  |
+| `category`  | no       | Filter for `list`: `verification`, `attestation`, `delegation`, `session`, `violation`, `endorsement` |
+| `limit`     | no       | Max events to return (for `list`)                                        |
+
+**Output:** JSON block with `score`, `tier`, and `events` (for `get`), or an array of
+event objects (for `list`).

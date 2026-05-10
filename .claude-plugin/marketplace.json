@@ -7,6 +7,18 @@
       "source": "./skills",
       "strict": false,
       "skills": "botcha-ai"
+    },
+    {
+      "name": "botcha-ai-challenge",
+      "source": "./skills",
+      "strict": false,
+      "skills": "botcha-ai-challenge"
+    },
+    {
+      "name": "botcha-ai-reputation",
+      "source": "./skills",
+      "strict": false,
+      "skills": "botcha-ai-reputation"
     }
   ]
 }
