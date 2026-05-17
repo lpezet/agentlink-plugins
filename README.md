@@ -5,6 +5,22 @@ and [Hermes Agent](https://hermes-agent.nousresearch.com/). Each skill lives in
 its own directory under `skills/` and is defined by a `SKILL.md` file loaded at
 runtime.
 
+## Usage
+
+For the very first time, the typical flow is:
+
+```
+/botcha-ai-app
+/botcha-ai-agent <app_id>
+/botcha-ai-token <app_id>
+```
+
+This will:
+
+1. Create an application in Botcha.ai to bind agents to a human.
+2. Create an identity for the agent inside the application in Botcha.ai
+3. Generate a JWT token to be used in Botcha-protected services or resources (as an example)
+
 ## Installation
 
 ### Claude Code
@@ -13,6 +29,8 @@ Add the marketplace and install the skill:
 
 ```bash
 /plugin marketplace add github:lpezet/agentlink-skills
+/plugin install botcha-ai-app@agentlink-skills
+/plugin install botcha-ai-agent@agentlink-skills
 /plugin install botcha-ai-token@agentlink-skills
 ```
 
@@ -38,6 +56,8 @@ Or within Hermes:
 
 ```bash
 /skills tap add lpezet/agentlink-skills
+/skills install lpezet/agentlink-skills/botcha-ai-app
+/skills install lpezet/agentlink-skills/botcha-ai-agent
 /skills install lpezet/agentlink-skills/botcha-ai-token
 /reset
 ```
