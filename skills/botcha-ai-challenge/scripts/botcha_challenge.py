@@ -15,17 +15,20 @@ via the botcha-ai skill). Clears cached access_token/expires_at/token_type befor
 requesting the challenge. Saves the resulting token back to config.yml with
 token_type="challenge".
 
-Only speed and compute challenges are handled automatically. Reasoning and hybrid
-challenges require interactive input — use the botcha-ai skill for those.
+Speed and compute challenges are solved automatically. Reasoning and hybrid challenges
+return needs_reasoning=true with challenge_id and challenge payload for the calling
+skill to answer interactively before calling botcha_verify_reasoning.py.
 
 Output JSON fields:
   success          bool
-  access_token     str   (on success)
-  refresh_token    str   (on success)
-  expires_in       int   (on success)
+  access_token     str   (on success, auto-solved)
+  refresh_token    str   (on success, auto-solved)
+  expires_in       int   (on success, auto-solved)
   challenge_type   str
-  time_to_solve_ms int   (on success)
-  needs_reasoning  bool  (true when challenge cannot be auto-solved — use botcha-ai skill)
+  time_to_solve_ms int   (on success, auto-solved)
+  needs_reasoning  bool  (true for reasoning/hybrid — skill must answer interactively)
+  challenge_id     str   (present when needs_reasoning=true)
+  challenge        dict  (present when needs_reasoning=true — contains questions array)
   error            str   (on failure)
   strategy_notes   str
 """
@@ -59,7 +62,7 @@ except Exception as e:
     print(json.dumps({
         "success": False,
         "error": f"config_load_failed: {e}",
-        "strategy_notes": "Run botcha_setup.py (botcha-ai skill) first.",
+        "strategy_notes": "Run /botcha-ai-agent first.",
     }))
     sys.exit(1)
 
@@ -67,7 +70,7 @@ if not AGENT_ID:
     print(json.dumps({
         "success": False,
         "error": "agent_not_registered",
-        "strategy_notes": "No agent_id found for this app. Run the botcha-ai skill first to register.",
+        "strategy_notes": "No agent_id found for this app. Run /botcha-ai-agent first.",
     }))
     sys.exit(1)
 
@@ -146,16 +149,14 @@ try:
             }))
 
     else:
-        # Reasoning/hybrid require interactive input — out of scope for this skill.
+        # Reasoning/hybrid: return challenge data for the skill to handle interactively.
         print(json.dumps({
             "success":         False,
             "needs_reasoning": True,
             "challenge_type":  ctype,
-            "strategy_notes":  (
-                f"Challenge type '{ctype}' requires reasoning answers and cannot be "
-                "solved automatically. Use the botcha-ai skill instead, which guides "
-                "you through answering reasoning questions."
-            ),
+            "challenge_id":    cid,
+            "challenge":       challenge,
+            "strategy_notes":  f"Challenge type '{ctype}' requires reasoning answers.",
         }))
 
 except Exception as e:

@@ -5,6 +5,22 @@ and [Hermes Agent](https://hermes-agent.nousresearch.com/). Each skill lives in
 its own directory under `skills/` and is defined by a `SKILL.md` file loaded at
 runtime.
 
+## Usage
+
+For the very first time, the typical flow is:
+
+```
+/botcha-ai-app
+/botcha-ai-agent <app_id>
+/botcha-ai-token <app_id>
+```
+
+This will:
+
+1. Create an application in Botcha.ai to bind agents to a human.
+2. Create an identity for the agent inside the application in Botcha.ai
+3. Generate a JWT token to be used in Botcha-protected services or resources (as an example)
+
 ## Installation
 
 ### Claude Code
@@ -13,7 +29,9 @@ Add the marketplace and install the skill:
 
 ```bash
 /plugin marketplace add github:lpezet/agentlink-skills
-/plugin install botcha-ai@agentlink-skills
+/plugin install botcha-ai-app@agentlink-skills
+/plugin install botcha-ai-agent@agentlink-skills
+/plugin install botcha-ai-token@agentlink-skills
 ```
 
 Or add it once to your project settings (`.claude/settings.json`):
@@ -31,57 +49,30 @@ Then install any skill with `/plugin install <skill-name>@agentlink-skills`.
 From the command line:
 
 ```bash
-hermes skills tap add lpezet/agentlink-skills && hermes skills install lpezet/agentlink-skills/botcha-ai
+hermes skills tap add lpezet/agentlink-skills && hermes skills install lpezet/agentlink-skills/botcha-ai-token
 ```
 
 Or within Hermes:
 
 ```bash
 /skills tap add lpezet/agentlink-skills
-/skills install lpezet/agentlink-skills/botcha-ai
+/skills install lpezet/agentlink-skills/botcha-ai-app
+/skills install lpezet/agentlink-skills/botcha-ai-agent
+/skills install lpezet/agentlink-skills/botcha-ai-token
 /reset
 ```
 
 ## Skills
 
-### [botcha-ai](skills/botcha-ai/SKILL.md)
-
-**Category:** auth | **Tags:** auth, botcha.ai | **Version:** 2.0.0
-
-Obtains a [Botcha.ai](https://botcha.ai) JWT access token for an AI agent.
-Manages the full identity lifecycle: first-run TAP registration (Ed25519 keypair
-generation), fast keypair challenge-response auth on subsequent runs, and
-challenge-solving fallback for unauthenticated contexts.
-
-| Challenge | Mechanism                  | Time limit |
-| --------- | -------------------------- | ---------- |
-| Speed     | SHA-256 hash               | 500 ms     |
-| Reasoning | Language / logic questions | 30 s       |
-| Hybrid    | Speed + Reasoning combined | 35 s       |
-| Compute   | Prime generation + hashing | 3–10 s     |
-
-**Inputs:**
-
-| Parameter  | Required | Description                                                                      |
-| ---------- | -------- | -------------------------------------------------------------------------------- |
-| `app_id`   | yes      | Your Botcha.ai application ID                                                    |
-| `audience` | no       | Resource server URL — scopes the token                                           |
-| `force`    | no       | Pass `"force"` to clear all cached tokens and force a full re-authentication cycle, earning a fresh verification event for reputation |
-
-**Output:** JSON block with `access_token`, `refresh_token`, `auth_method`,
-`agent_id` (on first registration), and `strategy_notes`.
-
----
-
 ### [botcha-ai-challenge](skills/botcha-ai-challenge/SKILL.md)
 
 **Category:** auth | **Tags:** auth, botcha.ai, reputation, challenge | **Version:** 1.0.0
 
-Intentionally solve a fresh Botcha.ai challenge to earn reputation. Unlike `botcha-ai`
-(which solves challenges only as a fallback), this skill always clears the cached token
-and requests a new challenge, ensuring the verified event is credited to the registered
-agent's reputation score. Speed and compute challenges are solved automatically. Reasoning
-and hybrid challenges are out of scope — use `botcha-ai` for those.
+Intentionally solve a fresh Botcha.ai challenge to earn reputation. Unlike `botcha-ai-token`
+(which uses TAP), this skill always clears the cached token and requests a new challenge,
+ensuring the verified event is credited to the registered agent's reputation score. All
+challenge types are handled: speed and compute are solved automatically; reasoning and hybrid
+questions are answered inline by the LLM.
 
 **Inputs:**
 
@@ -100,19 +91,27 @@ and hybrid challenges are out of scope — use `botcha-ai` for those.
 
 Read a [Botcha.ai](https://botcha.ai) agent's reputation score and event history.
 Reputation reflects verified behaviour — it cannot be self-reported. The primary way
-to build score today is through the `botcha-ai` and `botcha-ai-challenge` skills
+to build score today is through the `botcha-ai-token` and `botcha-ai-challenge` skills
 (each successful verification contributes a `verification/challenge_solved` event).
 The Botcha.ai whitepaper describes a planned reputation marketplace where agents will
 earn reputation across partner networks.
 
 **Inputs:**
 
-| Parameter   | Required | Description                                                              |
-| ----------- | -------- | ------------------------------------------------------------------------ |
-| `app_id`    | yes      | Your Botcha.ai application ID                                            |
-| `operation` | yes      | `get` — current score and tier · `list` — event history                  |
+| Parameter   | Required | Description                                                                                           |
+| ----------- | -------- | ----------------------------------------------------------------------------------------------------- |
+| `app_id`    | yes      | Your Botcha.ai application ID                                                                         |
+| `operation` | yes      | `get` — current score and tier · `list` — event history                                               |
 | `category`  | no       | Filter for `list`: `verification`, `attestation`, `delegation`, `session`, `violation`, `endorsement` |
-| `limit`     | no       | Max events to return (for `list`)                                        |
+| `limit`     | no       | Max events to return (for `list`)                                                                     |
 
 **Output:** JSON block with `score`, `tier`, and `events` (for `get`), or an array of
 event objects (for `list`).
+
+# Testing skills
+
+## Claude
+
+```bash
+claude --plugin-dir .
+```
