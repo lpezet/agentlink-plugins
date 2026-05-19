@@ -11,15 +11,15 @@ For the very first time, the typical flow is:
 
 ```
 /botcha-ai-app
-/botcha-ai-agent <app_id>
-/botcha-ai-token <app_id>
+/botcha-ai-agent [<app_id>]
+/botcha-ai-token [<app_id>]
 ```
 
 This will:
 
-1. Create an application in Botcha.ai to bind agents to a human.
-2. Create an identity for the agent inside the application in Botcha.ai
-3. Generate a JWT token to be used in Botcha-protected services or resources (as an example)
+1. create an application in Botcha.ai to bind agents to a human,
+2. create an identity for the agent inside the application in Botcha.ai,
+3. and generate a JWT token to be used in Botcha-protected services or resources
 
 ## Installation
 
@@ -63,6 +63,65 @@ Or within Hermes:
 ```
 
 ## Skills
+
+### [botcha-ai-app](skills/botcha-ai-app/SKILL.md)
+
+**Category:** auth | **Tags:** auth, botcha.ai, setup | **Version:** 1.0.0
+
+Sets up (or retrieves) a Botcha.ai application — the organizational boundary that binds a
+human operator to a set of AI agents, owning their trust level, rate limits, and credentials.
+If an app already exists in `~/.config/botcha-ai/config.yml` it is returned immediately;
+otherwise the skill guides the user through creating one (email + display name, email
+verification code) and saves the new `app_id` to config.
+
+**Inputs:** none (interactive)
+
+**Output:** JSON block with `app_id` and `created` (`true` when a new app was just created).
+
+---
+
+### [botcha-ai-agent](skills/botcha-ai-agent/SKILL.md)
+
+**Category:** auth | **Tags:** auth, botcha.ai, registration | **Version:** 1.0.0
+
+Registers (or retrieves) an AI agent identity with a Botcha.ai application. If an
+`agent_id` already exists in config for the given `app_id`, it is returned immediately
+without any API calls. Otherwise the skill creates an Ed25519 keypair, solves a speed
+challenge, registers the agent identity, registers the TAP keypair, and saves the new
+`agent_id` to `~/.config/botcha-ai/config.yml`.
+
+**Inputs:**
+
+| Parameter | Required | Description                                                          |
+| --------- | -------- | -------------------------------------------------------------------- |
+| `app_id`  | no       | Botcha.ai application ID — defaults to the first app found in config |
+
+**Output:** JSON block with `app_id`, `agent_id`, and `registered` (`true` when a new
+registration was performed).
+
+---
+
+### [botcha-ai-token](skills/botcha-ai-token/SKILL.md)
+
+**Category:** auth | **Tags:** auth, botcha.ai, token | **Version:** 1.0.0
+
+Obtains a Botcha.ai JWT access token for a registered TAP agent. Auth precedence: cached
+token → refresh token → TAP challenge-response (Ed25519 nonce-sign). The `force` flag
+clears the cache and forces a fresh TAP flow. Requires a registered agent for the given
+`app_id` (run `/botcha-ai-agent` first).
+
+**Inputs:**
+
+| Parameter  | Required | Description                                                          |
+| ---------- | -------- | -------------------------------------------------------------------- |
+| `app_id`   | no       | Botcha.ai application ID — defaults to the first app found in config |
+| `audience` | no       | Resource server URL — scopes the token                               |
+| `force`    | no       | Pass `force` to skip cache and refresh, always perform TAP           |
+
+**Output:** JSON block with `access_token`, `refresh_token`, `expires_in`, and `auth_method`
+(`cached`, `refresh`, or `tap`).
+
+---
 
 ### [botcha-ai-challenge](skills/botcha-ai-challenge/SKILL.md)
 
