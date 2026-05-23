@@ -28,10 +28,8 @@ This will:
 Add the marketplace and install the skill:
 
 ```bash
-/plugin marketplace add github:lpezet/agentlink-skills
-/plugin install botcha-ai-app@agentlink-skills
-/plugin install botcha-ai-agent@agentlink-skills
-/plugin install botcha-ai-token@agentlink-skills
+/plugin marketplace add lpezet/agentlink-skills
+/plugin install botcha-ai@agentlink-skills
 ```
 
 Or add it once to your project settings (`.claude/settings.json`):
