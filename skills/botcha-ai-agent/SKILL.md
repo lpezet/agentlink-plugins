@@ -21,9 +21,9 @@ description: |
 context: fork
 allowed-tools: Bash(python3 *)
 arguments:
-  - app_id
-  - agent_name
-  - operator
+  - app_id # optional — defaults to first app in config.yml
+  - agent_name # optional — falls back to agent.yml; else returns `missing`
+  - operator # optional — falls back to agent.yml; else returns `missing`
 argument-hint: "[--app-id <app_id>] [--agent-name <name>] [--operator <org>]"
 version: 1.0.0
 author: lpezet@gmail.com

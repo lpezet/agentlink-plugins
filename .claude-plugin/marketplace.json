@@ -1,6 +1,8 @@
 {
-  "name": "agentlink-skills",
-  "owner": { "name": "LP" },
+  "name": "agentlink-plugins",
+  "owner": {
+    "name": "LP"
+  },
   "plugins": [
     {
       "name": "botcha-ai-app",
