@@ -6,18 +6,22 @@ description: |
   and credentials those agents operate under.
 
   If one or more apps are already saved in ~/.config/botcha-ai/config.yml, returns
-  the existing app_id without creating anything new. When multiple apps exist and the
-  caller did not specify one, the human is asked to choose (or the first is used if
-  the human is inactive).
+  the existing app_id without creating anything new. When multiple apps exist, the
+  app matching the app_name argument is used; otherwise the first entry is returned.
 
-  If no app exists, guides the human through creating one: collects their email and
-  a display name, calls the Botcha.ai API, waits for an email verification code, and
-  saves the new app_id to config.
+  If no app exists and app_name/email arguments are not supplied, returns
+  needs_input=true so the calling agent can collect those values and re-invoke.
+  When both are present, calls the Botcha.ai API, then returns needs_input=true
+  again to request the email verification code from the operator. Once the code is
+  supplied the app is activated and saved.
 
   Returns a JSON block with app_id and created (true when a new app was just made).
 context: fork
 allowed-tools: Bash(python3 *), Bash(curl *)
-arguments: []
+arguments:
+  - app_name
+  - email
+arguments_hint: "[<app_name> <email>]"
 version: 1.0.0
 author: lpezet@gmail.com
 metadata:
@@ -48,23 +52,26 @@ EOF
 ```
 
 - **One app found** → emit the output block (Step 3) with that `app_id` and `"created": false`. Stop.
-- **Multiple apps found** → ask the human which one to use. Use the first one if the human is inactive or does not reply. Then go to Step 3.
+- **Multiple apps found** → if `app_name` was supplied as an argument, use the matching entry (exact match on key). If no match or no argument, use the first entry. Then go to Step 3.
 - **No apps found** → proceed to Step 1.
 
 ## Step 1: Create app
 
-Explain to the human that Botcha.ai requires an **app** to proceed. An app is the
-organizational boundary that binds them (as the human operator) to their AI agents.
-It owns the trust level, rate limits, and credentials that all agents operate under —
-without one, agents cannot obtain a verified identity to authenticate to Botcha-protected
-services.
+Check whether the `app_name` and `email` arguments were supplied. If either is missing,
+stop immediately and emit:
 
-Ask the human for:
+```json
+{
+  "success": false,
+  "needs_input": true,
+  "required": ["email", "app_name"],
+  "prompt": "A Botcha.ai app is required. Please provide the operator email address and a display name for the new app (default: \"My Agent Fleet\"), then re-invoke botcha-ai-app with those arguments."
+}
+```
 
-- **Email address** (`<USER_EMAIL>`) — used to verify ownership and receive the verification code
-- **App name** (`<APPNAME>`) — a short display name for this application. Provide "My Agent Fleet" as default.
+The calling agent must collect the missing values and re-invoke this skill before continuing.
 
-Then create the app:
+Once both are available, create the app:
 
 ```bash
 curl -s -X POST -H "Content-Type: application/json" \
@@ -74,11 +81,19 @@ curl -s -X POST -H "Content-Type: application/json" \
 cat /tmp/botcha_ai_app.json
 ```
 
-Tell the human to check their inbox for an email with a subject like
-`"BOTCHA: Your verification code is 418930"` and to share the numeric code
-(`<CODE>`) with you.
+A verification code will be sent to `<USER_EMAIL>`. Emit the following to the calling
+agent so it can relay the request to the operator and wait for the code:
 
-Once received, verify the email and activate the app:
+```json
+{
+  "success": false,
+  "needs_input": true,
+  "required": ["verification_code"],
+  "prompt": "A verification code was sent to <USER_EMAIL> (subject: \"BOTCHA: Your verification code is …\"). Please share the numeric code."
+}
+```
+
+Once the calling agent supplies the `verification_code`, verify the email and activate the app:
 
 ```bash
 python3 - <<'EOF'
@@ -96,10 +111,9 @@ curl -s -X POST -H "Content-Type: application/json" \
   -d '{"code": "<CODE>", "app_secret": "<APP_SECRET>"}'
 ```
 
-Check the response: if it indicates success, tell the human they can now log into
-their account at https://botcha.ai/login, then proceed to Step 2 yourself. If it indicates
-failure (e.g. wrong code, expired), ask the human to recheck the code and retry the
-verify call.
+Check the response: if it indicates success, proceed to Step 2. If it indicates failure
+(e.g. wrong code, expired), emit a `needs_input` response with `"required": ["verification_code"]`
+and a prompt asking the calling agent to obtain the correct code and retry.
 
 ## Step 2: Save app to configuration
 
