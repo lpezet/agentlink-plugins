@@ -52,9 +52,9 @@ test the full install flow — marketplace discovery, plugin listing, and instal
 Then inside Claude Code:
 
 ```
-/plugin install agentlink-botcha-ai@agentlink-skills
-/plugin install agentlink-director@agentlink-skills
-/plugin install agentlink-artist@agentlink-skills
+/plugin install agentlink-botcha-ai@agentlink-plugins
+/plugin install agentlink-director@agentlink-plugins
+/plugin install agentlink-artist@agentlink-plugins
 ```
 
 Skills are then available under their plugin namespace:
@@ -68,7 +68,7 @@ Skills are then available under their plugin namespace:
 To remove the marketplace when done:
 
 ```
-/plugin marketplace remove agentlink-skills
+/plugin marketplace remove agentlink-plugins
 ```
 
 ## Environment variables
