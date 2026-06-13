@@ -4,22 +4,38 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-A collection of LLM skills compatible with Claude Code and Hermes Agent. Each skill is a directory under `skills/` containing a `SKILL.md` (the LLM instructions) and an optional `scripts/` subdirectory of Python helpers.
+A collection of plugins for the AgentLink platform, each compatible with Claude Code and Hermes Agent. Plugins live under `plugins/` — each is a directory containing a `.claude-plugin/plugin.json` manifest, a `skills/` subdirectory of LLM skill definitions, and optionally an `agents/` subdirectory of agent definitions.
 
-## Registering a skill
+The top-level `.claude-plugin/marketplace.json` is the Claude Code marketplace manifest that lists all available plugins.
 
-`.claude-plugin/marketplace.json` is the Claude Code plugin manifest. When adding a new skill, add an entry to the `plugins` array:
+## Repo structure
+
+```
+plugins/
+  agentlink-botcha-ai/     # Botcha.ai auth and identity skills
+  agentlink-artist/        # AI image generation via FAL.ai
+  agentlink-director/      # Creative brief and poll pipeline
+.claude-plugin/
+  marketplace.json         # Marketplace manifest listing all plugins
+tests/
+  claude-code/             # Claude Code integration tests
+  hermes/                  # Hermes Agent integration tests
+```
+
+## Adding a new plugin
+
+Create a directory under `plugins/` with a `.claude-plugin/plugin.json` manifest, then register it in the top-level `.claude-plugin/marketplace.json`:
 
 ```json
 {
-  "name": "skill-name",
-  "source": "./skills",
-  "strict": false,
-  "skills": "skill-name"
+  "name": "plugin-name",
+  "source": "./plugins/plugin-name/"
 }
 ```
 
-The `skills` field must match the skill's directory name (and its `name` frontmatter field).
+## Adding a skill to an existing plugin
+
+Create a directory `plugins/<plugin-name>/skills/<skill-name>/` containing a `SKILL.md`. No changes to the top-level manifest are needed — the plugin already declares its source directory.
 
 ## SKILL.md structure
 
@@ -45,9 +61,11 @@ All scripts in `scripts/` follow the same contract:
 - Dependencies: stdlib only, plus `pyyaml` and `cryptography`. No other packages.
 - Use `sys.exit(0)` for handled failures (bad API response), `sys.exit(1)` only for usage errors.
 
-## botcha-ai skill family
+---
 
-Five skills share config at `~/.config/botcha-ai/` (both files chmod 600):
+## agentlink-botcha-ai
+
+Five skills that provide Botcha.ai identity and trust infrastructure. They share config at `~/.config/botcha-ai/` (both files chmod 600):
 
 - `agent.yml` — Ed25519 keypair + `agent_name` / `operator` (shared across all apps)
 - `config.yml` — per-app data keyed by `app_id`:
@@ -93,3 +111,51 @@ All scripts that call `/v1/token/verify` or `/v1/challenges/*/verify` include `"
 in the request body so solved challenges are attributed to the registered agent for reputation.
 
 Every API request to `api.botcha.ai` must include `?app_id=<app_id>` as a query parameter.
+
+---
+
+## agentlink-artist
+
+One skill that generates images via FAL.ai. Requires the `FAL_KEY` environment variable.
+The plugin bundles its own `.mcp.json` pointing at the FAL.ai MCP server —
+the FAL MCP tools are only available when this plugin is loaded.
+
+### generate-image
+
+Reads a `narration.json` produced by `/agentlink-director:gen-prompt-seed` (or an inline
+`--prompt`) and calls the FAL.ai MCP server to generate an image. Supports both synchronous
+and async FAL jobs (polls until complete). Writes `image-result.json` locally — it does not
+publish or upload the image anywhere.
+
+Model override via `--model <fal-model-id>`. Default: `fal-ai/flux/dev`.
+
+---
+
+## agentlink-director
+
+Three skills and two agents that drive the monthly creative brief pipeline for AgentLink.
+Skills are deterministic (no MCP, no network); agents own the network boundary.
+
+### Skills
+
+**roll-slots** — Reads `slots.yaml` from the skill directory, applies constraint-satisfaction
+rules (no recent repeats, tactile anchor), and writes `rolled-slots.json`. No LLM narration,
+no MCP calls. Safe to run at any time.
+
+**gen-prompt-seed** — Reads `rolled-slots.json` (or a provided path) and optional history,
+then generates a `prompt_seed`, `rationale`, and evaluation `criteria` as Art Director.
+Writes `narration.json`. No MCP calls, no publishing.
+
+**prepare-poll** — Purely deterministic: given raw `list_polls`/`list_briefs` JSON and
+`slots.yaml`, decides which slot to poll next, applies the recency exclusion window, and
+builds the `create_poll_args`. Writes `poll-plan.json`. No MCP calls, no randomness.
+
+### Agents
+
+**create-brief** — Orchestrates the full monthly brief pipeline end-to-end: fetches brief
+history from AgentLink MCP, runs `/roll-slots` and `/gen-prompt-seed`, then publishes the
+brief. Requires `brief.admin` role.
+
+**create-poll** — Creates a single poll for one brief slot (rotating subject → medium →
+process → mood). Fetches polls + brief history via curl, delegates the slot/candidate
+decision to `/prepare-poll`, then publishes the poll. Requires `poll.admin` role.

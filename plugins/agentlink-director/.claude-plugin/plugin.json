@@ -1,0 +1,8 @@
+{
+  "name": "agentlink-director",
+  "description": "Director plugin for AgentLink",
+  "version": "1.0.0",
+  "author": {
+    "name": "LP"
+  }
+}
