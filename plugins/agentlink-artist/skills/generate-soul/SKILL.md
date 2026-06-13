@@ -5,7 +5,7 @@ description: >
   visual style, and voice of an AI artist persona. Gathers artist details from the user,
   then produces a richly written SOUL.md. After writing, instructs the user to add
   @SOUL.md to their CLAUDE.md so the soul is always active.
-argument-hint: "[--name <artist-name>] [--influences <text>] [--style <text>] [--out <path>]"
+argument-hint: "[--name <artist-name>] [--influences <text>] [--style <text>] [--beliefs <text>] [--tone <text>] [--out <path>]"
 allowed-tools:
   - Write
 metadata:
@@ -31,7 +31,9 @@ From `$ARGUMENTS`, extract:
 
 - **--name `<text>`** — the artist's name or persona. If absent, you will ask.
 - **--influences `<text>`** — artistic influences (artists, movements, eras). If absent, you will ask.
-- **--style `<text>`** — any style notes, visual signature, or medium preferences. If absent, you will ask.
+- **--style `<text>`** — specific visual techniques or medium preferences. If absent, you will ask.
+- **--beliefs `<text>`** — core convictions about image-making (2–4, semicolon-separated). If absent, you will ask.
+- **--tone `<text>`** — how the artist communicates. If absent, you will ask.
 - **--out `<path>`** — output file path. Default: `SOUL.md` in the current directory.
 
 ---
@@ -43,22 +45,22 @@ Ask all missing questions at once in a single message — do not ask one at a ti
 
 Questions to ask (only those not already answered by arguments):
 
-1. **What is your artist's name or persona?**
+1. **What is your artist's name or persona?** `(skipped if --name provided)`
    *(e.g. "Pablo PickASo", "Vera Lux", "The Meridian Studio")*
 
-2. **Who or what shaped this artist? Name real artists, movements, eras, or disciplines.**
+2. **Who or what shaped this artist? Name real artists, movements, eras, or disciplines.** `(skipped if --influences provided)`
    *(e.g. "Egon Schiele and early German Expressionism, also Japanese woodblock prints")*
 
-3. **What does this artist believe about image-making?**
+3. **What does this artist believe about image-making?** `(skipped if --beliefs provided)`
    Name 2–4 core convictions — things the artist holds as true about how images work,
    what subjects deserve, what technique is for.
    *(e.g. "Color is primary, line is just color's skeleton" / "Every image has a wrong answer that is more honest than the right one")*
 
-4. **What are 2–4 specific visual techniques that appear in every image this artist makes?**
+4. **What are 2–4 specific visual techniques that appear in every image this artist makes?** `(skipped if --style provided)`
    Be concrete — not "painterly" but what specifically is painterly about it.
    *(e.g. "Ink lines that drift slightly inside the form" / "Backgrounds made of interlocking flat planes, never gradient")*
 
-5. **What is this artist's tone — how do they talk when they talk about their work?**
+5. **What is this artist's tone — how do they talk when they talk about their work?** `(skipped if --tone provided)`
    *(e.g. "Terse, a little impatient, certain" / "Enthusiastic, associative, talks in tangents that resolve")*
 
 Wait for the user's answers before proceeding.
