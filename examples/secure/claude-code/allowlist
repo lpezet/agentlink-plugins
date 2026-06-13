@@ -1,0 +1,15 @@
+# Egress allowlist for secure-dev-for-agent.
+# The proxy blocks CONNECT requests to any domain not listed here.
+# One domain per line. Lines starting with # and blank lines are ignored.
+# Restart the proxy after editing: docker compose -f .devcontainer/compose.yaml restart proxy
+#
+# Copy this file to ~/.config/secure-dev-for-agent/allowlist.txt and customise.
+
+# Anthropic API (Claude Code)
+api.anthropic.com
+
+# FAL.ai MCP server
+mcp.fal.ai
+
+# npm registry — uncomment if the agent runs npm install / npm publish
+# registry.npmjs.org
