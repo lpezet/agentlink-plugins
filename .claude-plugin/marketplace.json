@@ -1,5 +1,6 @@
 {
   "name": "agentlink-plugins",
+  "version": "2.0.0",
   "description": "AgentLink Plugins for AgentLink",
   "owner": {
     "name": "LP"
