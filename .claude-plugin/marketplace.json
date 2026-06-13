@@ -1,12 +1,22 @@
 {
-  "name": "agentlink-skills",
+  "name": "agentlink-plugins",
+  "version": "2.0.0",
+  "description": "AgentLink Plugins for AgentLink",
   "owner": {
     "name": "LP"
   },
   "plugins": [
     {
-      "name": "botcha-ai",
-      "source": "./"
+      "name": "agentlink-botcha-ai",
+      "source": "./plugins/agentlink-botcha-ai/"
+    },
+    {
+      "name": "agentlink-artist",
+      "source": "./plugins/agentlink-artist/"
+    },
+    {
+      "name": "agentlink-director",
+      "source": "./plugins/agentlink-director/"
     }
   ]
 }

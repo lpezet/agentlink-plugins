@@ -1,0 +1,167 @@
+# Art Director slot vocabulary.
+# Edit freely; the roll job reads this on each run.
+# Bump `version` on breaking schema changes so the job can refuse to run on a mismatch.
+
+version: 1
+
+# ───────────────────────────────────────────────────────────────
+# Global constraints — enforced by the roll job, not the LLM.
+# ───────────────────────────────────────────────────────────────
+constraints:
+  - id: tactile_anchor
+    description: At least one of medium or process must be tactile/analog.
+    type: at_least_one_tag
+    slots: [medium, process]
+    tag: tactile
+
+  - id: no_recent_repeat
+    description: A slot value cannot repeat within the last N months for that slot.
+    type: no_repeat_within_months
+    months: 6
+
+  - id: max_roll_attempts
+    description: If constraints can't be satisfied in this many tries, fail loudly.
+    type: roll_budget
+    attempts: 50
+
+# ───────────────────────────────────────────────────────────────
+# Slots. Each slot picks `pick` value(s) from `values`.
+# `weights` are optional; default uniform.
+# `tags` are free-form; constraints reference them by name.
+# ───────────────────────────────────────────────────────────────
+slots:
+
+  medium:
+    description: Physical substrate or technique.
+    pick: 1
+    values:
+      - { id: cyanotype,                 label: "cyanotype",                                   tags: [tactile, photographic] }
+      - { id: risograph_two_color,       label: "risograph two-color",                         tags: [tactile, print] }
+      - { id: linocut,                   label: "linocut block print",                         tags: [tactile, print] }
+      - { id: polaroid_emulsion_lift,    label: "polaroid emulsion lift",                      tags: [tactile, photographic] }
+      - { id: wet_plate_tintype,         label: "wet-plate tintype",                           tags: [tactile, photographic] }
+      - { id: encaustic_wax,             label: "encaustic wax with embedded objects",         tags: [tactile, painting] }
+      - { id: letterpress_halftone,      label: "letterpress with halftone",                   tags: [tactile, print] }
+      - { id: plaster_fresco,            label: "plaster fresco with crackle",                 tags: [tactile, painting] }
+      - { id: sumi_e,                    label: "sumi-e ink wash",                             tags: [tactile, painting] }
+      - { id: gouache,                   label: "gouache flat-color illustration",              tags: [tactile, painting] }
+      - { id: oil_pastel,                label: "oil pastel rubbing",                          tags: [tactile, painting] }
+      - { id: watercolor_wet,            label: "watercolor wet-on-wet",                       tags: [tactile, painting] }
+      - { id: tempera_crackle,           label: "tempera with eggshell crackle",               tags: [tactile, painting] }
+      - { id: impasto_oil,               label: "impasto palette-knife oil",                   tags: [tactile, painting] }
+      - { id: retablo_on_tin,            label: "Mexican retablo on tin",                      tags: [tactile, painting, folk] }
+      - { id: long_exposure,             label: "long-exposure light painting",                tags: [photographic] }
+      - { id: double_exposure_film,      label: "double-exposure film",                        tags: [photographic] }
+      - { id: infrared_color,            label: "infrared color film (Aerochrome)",            tags: [photographic] }
+      - { id: tilt_shift,                label: "tilt-shift miniature",                        tags: [photographic] }
+      - { id: pinhole,                   label: "pinhole soft-focus",                          tags: [tactile, photographic] }
+      - { id: solarized_print,           label: "solarized darkroom print",                    tags: [tactile, photographic] }
+      - { id: cross_processed,           label: "cross-processed slide film",                  tags: [photographic] }
+      - { id: photogram,                 label: "photogram (objects on paper)",                tags: [tactile, photographic] }
+      - { id: midcentury_editorial,      label: "mid-century editorial illustration",          tags: [print, illustration] }
+      - { id: constructivist_poster,     label: "Soviet constructivist poster",                tags: [print, illustration] }
+      - { id: art_nouveau,               label: "Art Nouveau linework",                        tags: [illustration] }
+      - { id: memphis_pattern,           label: "Memphis pattern",                             tags: [illustration] }
+      - { id: brutalist_typographic,     label: "brutalist typographic poster",                tags: [print, illustration] }
+      - { id: botanical_engraving,       label: "vintage botanical engraving",                 tags: [print, illustration] }
+      - { id: blueprint_wash,            label: "architectural blueprint with watercolor wash", tags: [tactile, illustration] }
+      - { id: isometric_pixel,           label: "isometric pixel diorama",                     tags: [digital] }
+      - { id: claymation,                label: "claymation diorama",                          tags: [tactile, sculptural] }
+      - { id: paper_quilling,            label: "paper quilling",                              tags: [tactile, sculptural] }
+      - { id: origami_still_life,        label: "origami still life",                          tags: [tactile, sculptural] }
+      - { id: dollhouse_diorama,         label: "miniature diorama scene",                    tags: [tactile, sculptural] }
+      - { id: assemblage_cigar_box,      label: "found-object assemblage in a cigar box",      tags: [tactile, sculptural] }
+      - { id: embroidered_hoop,          label: "embroidered hoop",                            tags: [tactile, sculptural] }
+      - { id: shadow_box_cutout,         label: "shadow-box layered cutout",                   tags: [tactile, sculptural] }
+      - { id: pressed_herbarium,         label: "pressed-flower herbarium page",               tags: [tactile, sculptural] }
+      - { id: glitch_datamosh,           label: "glitch / datamosh",                           tags: [digital, process] }
+      - { id: ascii_art,                 label: "ASCII art",                                   tags: [digital] }
+      - { id: low_poly,                  label: "low-poly render",                             tags: [digital] }
+      - { id: crt_scanline_8bit,         label: "CRT-scanline 8-bit",                          tags: [digital] }
+      - { id: y2k_chrome,                label: "Y2K chrome iridescence",                      tags: [digital] }
+      - { id: plotter_drawing,           label: "generative plotter drawing",                  tags: [tactile, digital] }
+      - { id: ukiyo_e,                   label: "ukiyo-e woodblock",                           tags: [print, historical] }
+      - { id: persian_miniature,         label: "Persian miniature",                           tags: [painting, historical] }
+      - { id: byzantine_icon,            label: "Byzantine icon with gold leaf",               tags: [painting, historical] }
+      - { id: illuminated_manuscript,    label: "medieval illuminated manuscript",             tags: [tactile, painting, historical] }
+      - { id: mughal_court_painting,     label: "Mughal court painting",                       tags: [painting, historical] }
+      - { id: papel_picado,              label: "papel picado",                                tags: [tactile, print, folk] }
+      - { id: photorealistic_cgi,        label: "photorealistic CGI / digital render",          tags: [digital] }
+      - { id: anime_illustration,        label: "anime / manga digital illustration",           tags: [digital, illustration] }
+      - { id: fantasy_concept_art,       label: "fantasy or sci-fi concept art digital painting", tags: [digital, illustration] }
+      - { id: graphic_novel_comic,       label: "graphic novel / comic illustration",           tags: [illustration] }
+      - { id: trompe_loeil_composite,    label: "trompe-l'oeil mixed-reality composite",        tags: [digital] }
+      - { id: typographic_portrait,      label: "typographic portrait (face built from words)", tags: [digital, illustration] }
+      - { id: victorian_fairy_tale,      label: "Victorian fairy tale illustration (Rackham / Dulac style)", tags: [illustration, historical] }
+
+  process:
+    description: What was done to the medium.
+    pick: 1
+    values:
+      - { id: torn_and_cut,              label: "torn and cut",                                tags: [tactile] }
+      - { id: hand_stitched,             label: "hand-stitched",                               tags: [tactile] }
+      - { id: scratched_repainted,       label: "scratched and re-painted",                    tags: [tactile] }
+      - { id: water_damaged,             label: "water-damaged",                               tags: [tactile] }
+      - { id: painted_over,              label: "painted over",                                tags: [tactile] }
+      - { id: double_exposed,            label: "double-exposed" }
+      - { id: as_if_found,               label: "photographed as if found, edges worn",        tags: [tactile] }
+      - { id: washed_out,                label: "washed-out edges" }
+      - { id: asymmetric_crop,           label: "asymmetric crop" }
+      - { id: negative_space_dominant,   label: "negative space dominant" }
+      - { id: only_found_objects,        label: "only found objects",                          tags: [tactile] }
+      - { id: figure_from_behind,        label: "subject faces entirely away from viewer" }
+      - { id: sun_disc_backdrop,         label: "subject placed against a large circular disc (sun or moon)" }
+      - { id: scale_juxtaposition,       label: "two elements at dramatically different scales share the frame" }
+      - { id: cutaway_cross_section,     label: "cutaway removes a wall to reveal interior and exterior simultaneously" }
+      - { id: mirror_reflection,         label: "perfect mirror reflection as compositional axis" }
+
+  subject:
+    description: What the image depicts.
+    pick: 1
+    values:
+      - { id: pantry_staples,            label: "pantry staples" }
+      - { id: public_transit,            label: "public transit" }
+      - { id: weather_phenomena,         label: "weather phenomena" }
+      - { id: succulents,                label: "succulents" }
+      - { id: mushrooms,                 label: "mushrooms" }
+      - { id: trees,                     label: "trees" }
+      - { id: marine_animals,            label: "marine animals" }
+      - { id: birds,                     label: "birds" }
+      - { id: insects,                   label: "insects" }
+      - { id: brutalist_architecture,    label: "brutalist architecture" }
+      - { id: vernacular_architecture,   label: "vernacular architecture" }
+      - { id: ruins,                     label: "ruins" }
+      - { id: transit_shelters,          label: "transit shelters" }
+      - { id: food_cultures,             label: "food cultures" }
+      - { id: liminal_spaces,            label: "liminal spaces" }
+      - { id: markets_and_bazaars,       label: "markets and bazaars" }
+      - { id: cosmos,                    label: "cosmos / astronomy" }
+      - { id: geological_formations,     label: "geological formations" }
+      - { id: domestic_interiors,        label: "domestic interiors" }
+      - { id: childhood_objects,         label: "childhood memory objects" }
+      - { id: rituals_and_holidays,      label: "rituals and holidays" }
+      - { id: machinery_and_tools,       label: "machinery and tools" }
+      - { id: maps_and_cartography,      label: "maps and cartography" }
+      - { id: beaches,                   label: "beaches" }
+      - { id: kitchens,                  label: "kitchens" }
+      - { id: human_portrait,            label: "close-up single person portrait" }
+      - { id: fantasy_creatures,         label: "mythological or fantasy creatures (dragons, spirits, golems)" }
+      - { id: cats_and_pets,             label: "domestic animals, especially cats" }
+      - { id: couples_romance,           label: "romantic couples or intimate pairs" }
+      - { id: robots_androids,           label: "robots, androids, cyborgs" }
+
+  mood:
+    description: Atmospheric constraint.
+    pick: 1
+    values:
+      - { id: two_color_palette,         label: "2-color palette only" }
+      - { id: monochrome,                label: "monochrome" }
+      - { id: neon_only,                 label: "neon palette only" }
+      - { id: must_include_text,         label: "must include text or signage" }
+      - { id: no_human_figures,          label: "no human figures" }
+      - { id: only_human_figures,        label: "only human figures" }
+      - { id: single_light_source,       label: "single light source" }
+      - { id: always_square,             label: "always square aspect" }
+      - { id: always_panoramic,          label: "always panoramic aspect" }
+      - { id: handwritten_annotation,    label: "must include handwritten annotation" }
+      - { id: deadpan_absurdist,         label: "treat an objectively absurd premise with complete sincerity — no winking" }
